@@ -2,6 +2,13 @@ pipeline {
     agent any
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                sh 'ls -l'   // debug: confirm package.json is present
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 sh 'docker run --rm -v $PWD:/app -w /app node:16 npm install --save'
