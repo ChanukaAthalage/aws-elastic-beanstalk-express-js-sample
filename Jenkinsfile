@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                sh 'ls -l'   // confirm package.json etc.
+                sh 'ls -l'   // shows package.json, Dockerfile, etc.
             }
         }
 
@@ -17,12 +17,7 @@ pipeline {
 
         stage('Run Unit Tests') {
             steps {
-                sh '''
-                  docker run --rm \
-                    -v $WORKSPACE:/app \
-                    -w /app \
-                    node:16 npm test
-                '''
+                sh 'docker run --rm node-app npm test'
             }
         }
 
