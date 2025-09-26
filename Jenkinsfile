@@ -1,21 +1,16 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:16'
-            args '-u root'   // run as root to avoid workspace/permission issues
-        }
-    }
+    agent any
 
     stages {
         stage('Install Dependencies') {
             steps {
-                sh 'npm install --save'
+                sh 'docker run --rm -v $PWD:/app -w /app node:16 npm install --save'
             }
         }
 
         stage('Run Unit Tests') {
             steps {
-                sh 'npm test'
+                sh 'docker run --rm -v $PWD:/app -w /app node:16 npm test'
             }
         }
 
