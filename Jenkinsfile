@@ -6,7 +6,7 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Source') {
             steps {
                 checkout scm
                 sh 'ls -l'
@@ -15,19 +15,26 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t node-app .'
+                sh '''
+                  echo "Building Docker image..."
+                  docker build -t node-app .
+                '''
             }
         }
 
         stage('Run Unit Tests') {
             steps {
-                sh 'docker run --rm node-app npm test'
+                sh '''
+                  echo "Running unit tests inside container..."
+                  docker run --rm node-app npm test
+                '''
             }
         }
 
-        stage('Security Scan') {
+        stage('Security Scan with Snyk') {
             steps {
                 sh '''
+                  echo "Scanning Docker image for vulnerabilities..."
                   docker run --rm \
                     -e SNYK_TOKEN=$SNYK_TOKEN \
                     -v /var/run/docker.sock:/var/run/docker.sock \
@@ -36,13 +43,16 @@ pipeline {
             }
         }
 
-        stage('Docker Build & Push') {
+        stage('Docker Hub Push (Optional)') {
             steps {
-                echo "Next: Push to Docker Hub (configure Docker Hub credentials here)"
+                echo "This step is optional. Uncomment to enable Docker Hub push."
                 // withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                //     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                //     sh 'docker tag node-app $DOCKER_USER/node-app:latest'
-                //     sh 'docker push $DOCKER_USER/node-app:latest'
+                //     sh '''
+                //       echo "Logging in to Docker Hub..."
+                //       echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                //       docker tag node-app $DOCKER_USER/node-app:latest
+                //       docker push $DOCKER_USER/node-app:latest
+                //     '''
                 // }
             }
         }
