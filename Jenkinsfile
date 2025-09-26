@@ -1,10 +1,11 @@
 pipeline {
     agent any
+
     environment {
-        DOCKER_HUB_USER = credentials('docker-hub-user')
-        DOCKER_HUB_PASS = credentials('docker-hub-pass')
+        // Map Jenkins secret text credential with ID 'snyk-token' to SNYK_TOKEN
         SNYK_TOKEN = credentials('snyk-token')
     }
+
     stages {
         stage('Checkout') {
             steps {
@@ -12,32 +13,39 @@ pipeline {
                 sh 'ls -l'
             }
         }
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t node-app .'
             }
         }
+
         stage('Run Unit Tests') {
             steps {
                 sh 'docker run --rm node-app npm test'
             }
         }
+
         stage('Security Scan') {
             steps {
                 sh '''
                   docker run --rm \
                     -e SNYK_TOKEN=$SNYK_TOKEN \
-                    snyk/snyk:docker snyk test node-app --severity-threshold=high
+                    -v $(pwd):/app \
+                    -w /app snyk/snyk:docker snyk test --severity-threshold=high
                 '''
             }
         }
+
         stage('Docker Build & Push') {
             steps {
-                sh '''
-                  echo $DOCKER_HUB_PASS | docker login -u $DOCKER_HUB_USER --password-stdin
-                  docker tag node-app $DOCKER_HUB_USER/node-app:latest
-                  docker push $DOCKER_HUB_USER/node-app:latest
-                '''
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                      echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                      docker tag node-app $DOCKER_USER/node-app:latest
+                      docker push $DOCKER_USER/node-app:latest
+                    '''
+                }
             }
         }
     }
