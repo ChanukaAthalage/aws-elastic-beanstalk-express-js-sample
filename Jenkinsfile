@@ -31,10 +31,11 @@ pipeline {
                   docker run --rm \
                     -e SNYK_TOKEN=$SNYK_TOKEN \
                     -v /var/run/docker.sock:/var/run/docker.sock \
-                    snyk/snyk:docker test --docker node-app --severity-threshold=high
+                    snyk/snyk:docker container test node-app --severity-threshold=high
                 '''
             }
         }
+
 
 
         stage('Docker Build & Push') {
