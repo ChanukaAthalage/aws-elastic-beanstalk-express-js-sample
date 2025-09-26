@@ -5,19 +5,19 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                sh 'ls -l'   // debug: confirm package.json is present
+                sh 'ls -l'   // confirm package.json is present
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'docker run --rm -v $WORKSPACE:/app -w /app node:16 npm install --save'
+                sh 'docker run --rm -v $(pwd):/workspace -w /workspace node:16 npm install --save'
             }
         }
 
         stage('Run Unit Tests') {
             steps {
-                sh 'docker run --rm -v $WORKSPACE:/app -w /app node:16 npm test'
+                sh 'docker run --rm -v $(pwd):/workspace -w /workspace node:16 npm test'
             }
         }
 
