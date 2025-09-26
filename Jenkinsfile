@@ -31,7 +31,7 @@ pipeline {
                   docker run --rm \
                     -e SNYK_TOKEN=$SNYK_TOKEN \
                     -v /var/run/docker.sock:/var/run/docker.sock \
-                    snyk/snyk:docker test node-app --severity-threshold=high
+                    snyk/snyk:docker test --severity-threshold=high -- node-app
                 '''
             }
         }
